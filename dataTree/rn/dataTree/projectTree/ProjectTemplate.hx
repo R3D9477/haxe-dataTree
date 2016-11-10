@@ -1,5 +1,17 @@
 package rn.dataTree.projectTree;
 
+import haxe.Json;
+import sys.io.File;
+import haxe.io.Path;
+import sys.io.Process;
+import sys.FileSystem;
+
+import rn.typext.hlp.SysHelper;
+import rn.typext.hlp.FileSystemHelper;
+
+using StringTools;
+using rn.typext.ext.StringExtender;
+
 class ProjectTemplate {
 	public static function getClassName (projectTitle:String) : String
 		return Path.withoutExtension(Path.withoutDirectory(projectTitle))
@@ -80,7 +92,7 @@ class ProjectTemplate {
 			if (!runCmd(templateConfig.platforms.all, "before") || !runCmd(platformConfig, "before"))
 				return null;
 		
-		var destDir:String = tree.getAbsolutePath(cast(tree.itemsList[destIndex], ProjectItem).path);
+		var destDir:String = tree.getAbsolutePath(cast(tree.itemsList[destIndex], ProjectTreeItem).path);
 		
 		if (FileSystem.exists(Path.join([templatePath, "files"])))
 			for (tFile in FileSystem.readDirectory(Path.join([templatePath, "files"]))) {

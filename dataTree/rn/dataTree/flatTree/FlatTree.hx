@@ -5,10 +5,10 @@ import sys.FileSystem;
 import haxe.Serializer;
 import haxe.Unserializer;
 
-import hxTypeExt.FileSystemHelper;
+import rn.typext.hlp.FileSystemHelper;
 
-using hxTypeExt.ArrayExtender;
-using hxTypeExt.StringExtender;
+using rn.typext.ext.ArrayExtender;
+using rn.typext.ext.StringExtender;
 
 class FlatTree {
 	public var itemsList:Array<FlatTreeItem>;
@@ -38,12 +38,12 @@ class FlatTree {
 	public function copyTo (srcIndex:Int, destIndex:Int) : Bool {
 		var cpItemsList:Array<Dynamic> = new Array<Dynamic>();
 		
-		var cpItem:Item = Reflect.copy(this.itemsList[srcIndex]);
+		var cpItem:FlatTreeItem = Reflect.copy(this.itemsList[srcIndex]);
 		cpItem.setParent(null);
 		cpItemsList.push({"currItem": cpItem});
 		
 		var lastLevel:Int = 0;
-		var lastParent:Item = cpItem;
+		var lastParent:FlatTreeItem = cpItem;
 		
 		this.iterateChildsOf(srcIndex, function (childIndex:Int) {
 			cpItem = Reflect.copy(this.itemsList[childIndex]);
@@ -104,7 +104,7 @@ class FlatTree {
 		return destIndex;
 	}
 	
-	public function addItemTo (item:Item, destIndex:Int) : Int
+	public function addItemTo (item:FlatTreeItem, destIndex:Int) : Int
 		return this.moveToWithSort(this.itemsList.push(item) - 1, destIndex);
 	
 	public function saveTreeToFile (treePath:String) : Void {

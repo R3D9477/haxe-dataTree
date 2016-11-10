@@ -10,13 +10,13 @@ import sys.io.FileInput;
 import sys.io.FileOutput;
 import haxe.io.BytesOutput;
 
-import hxTypeExt.SysHelper;
-import hxTypeExt.FileSystemHelper;
+import rn.dataTree.flatTree.*;
 
-import rn.dataTree.flatTree.FlatTree;
+import rn.typext.hlp.SysHelper;
+import rn.typext.hlp.FileSystemHelper;
 
 using StringTools;
-using hxTypeExt.StringExtender;
+using rn.typext.ext.StringExtender;
 
 class ProjectTree extends FlatTree {
 	public var projectPath:String;
@@ -72,16 +72,16 @@ class ProjectTree extends FlatTree {
 		var rnIndex:Int = this.itemsList.length;
 		
 		for (item in this.itemsList) {
-			var pItem:ProjectItem = cast(item, ProjectItem);
+			var pItem:ProjectTreeItem = cast(item, ProjectTreeItem);
 			
 			sOut.writeString(
 				this.config.getSettingStr("vimStudio", "charSubitem").repeat(item.level) +
 				
 				this.config.getSettingStr("vimStudio",
 					(switch(pItem.type) {
-						case ProjectItemType.ProjectItem: "charProject_l";
-						case ProjectItemType.DirectoryItem: "charDirectory_l";
-						case ProjectItemType.FileItem: "charFile_l";
+						case ProjectTreeItemType.ProjectItem: "charProject_l";
+						case ProjectTreeItemType.DirectoryItem: "charDirectory_l";
+						case ProjectTreeItemType.FileItem: "charFile_l";
 						default: "";
 					})
 				) +
@@ -98,9 +98,9 @@ class ProjectTree extends FlatTree {
 				
 				this.config.getSettingStr("vimStudio",
 					(switch(pItem.type) {
-						case ProjectItemType.ProjectItem: "charProject_r";
-						case ProjectItemType.DirectoryItem: "charDirectory_r";
-						case ProjectItemType.FileItem: "charFile_r";
+						case ProjectTreeItemType.ProjectItem: "charProject_r";
+						case ProjectTreeItemType.DirectoryItem: "charDirectory_r";
+						case ProjectTreeItemType.FileItem: "charFile_r";
 						default: "";
 					})
 				)
@@ -113,7 +113,7 @@ class ProjectTree extends FlatTree {
 	
 	public function getIndexByPath (fndPath:String) : Int {
 		for (itemIndex in 0...this.itemsList.length)
-			if (cast(this.itemsList[itemIndex], ProjectItem).path == fndPath)
+			if (cast(this.itemsList[itemIndex], ProjectTreeItem).path == fndPath)
 				return itemIndex;
 		
 		return -1;
@@ -137,15 +137,15 @@ class ProjectTree extends FlatTree {
 		this.printMaskToFile();
 	}
 	
-	public override function addItemTo (item:Item, destIndex:Int) : Int
+	public override function addItemTo (item:FlatTreeItem, destIndex:Int) : Int
 		return this.moveTo(this.itemsList.push(item) - 1, destIndex);
 	
 	public function moveTo (srcIndex:Int, destIndex:Int) : Int {
 		var sortItemLevel:Int = this.itemsList[destIndex].level + 1;
-		var sortItem:ProjectItem = cast(this.itemsList[srcIndex], ProjectItem);
+		var sortItem:ProjectTreeItem = cast(this.itemsList[srcIndex], ProjectTreeItem);
 		
 		return super.moveToWithSort(srcIndex, destIndex, function (childIndex:Int) {
-			var childItem:ProjectItem = cast(this.itemsList[childIndex], ProjectItem);
+			var childItem:ProjectTreeItem = cast(this.itemsList[childIndex], ProjectTreeItem);
 			
 			var res:Bool = (childItem.level == sortItemLevel);
 			
@@ -182,7 +182,7 @@ class ProjectTree extends FlatTree {
 		if (!isLink && !isProject)
 			FileSystemHelper.copy(filePath, filePath = Path.join([this.getItemPathAt(destIndex), Path.withoutDirectory(filePath)]));
 		
-		var itemBuf:Array<Item> = new Array<Item>();
+		var itemBuf:Array<FlatTreeItem> = new Array<FlatTreeItem>();
 		
 		if (this.itemsList.length > 0 && destIndex >= 0)
 			itemBuf.push(this.itemsList[destIndex]);
@@ -193,16 +193,16 @@ class ProjectTree extends FlatTree {
 			if (FileSystemHelper.isHiddenFile(currPath) && !addHidden)
 				return;
 			
-			var item:ProjectItem = new ProjectItem(this);
+			var item:ProjectTreeItem = new ProjectTreeItem(this);
 			item.isLink = isLink;
 			item.path = this.getRelativePath(currPath);
 			item.title = Path.withoutDirectory(currPath);
-			item.type = isProject ? ProjectItemType.ProjectItem : FileSystem.isDirectory(currPath) ? ProjectItemType.DirectoryItem : ProjectItemType.FileItem;
+			item.type = isProject ? ProjectTreeItemType.ProjectItem : FileSystem.isDirectory(currPath) ? ProjectTreeItemType.DirectoryItem : ProjectTreeItemType.FileItem;
 			
 			if (itemBuf.length > 0)
 				if (destIndex < 0) {
 					while (itemBuf.length > 1) {
-						if (Path.directory(item.path) == cast(itemBuf[itemBuf.length - 1], ProjectItem).path)
+						if (Path.directory(item.path) == cast(itemBuf[itemBuf.length - 1], ProjectTreeItem).path)
 							break;
 						
 						itemBuf.pop();
@@ -213,7 +213,7 @@ class ProjectTree extends FlatTree {
 			
 			this.addItemTo(item, destIndex);
 			
-			if (item.type == ProjectItemType.ProjectItem || item.type == ProjectItemType.DirectoryItem)
+			if (item.type == ProjectTreeItemType.ProjectItem || item.type == ProjectTreeItemType.DirectoryItem)
 				itemBuf.push(item);
 			
 			isProject = false;
@@ -233,7 +233,7 @@ class ProjectTree extends FlatTree {
 	}
 	
 	public function renameFileItemAt (itemIndex:Int, newTitle:String) : Void {
-		var item:ProjectItem = cast(this.itemsList[itemIndex], ProjectItem);
+		var item:ProjectTreeItem = cast(this.itemsList[itemIndex], ProjectTreeItem);
 		var newItemPath:String = Path.addTrailingSlash(Path.join([Path.directory(item.path), newTitle]));
 		var itemAbsPath:String = this.getAbsolutePath(item.path);
 		
@@ -241,7 +241,7 @@ class ProjectTree extends FlatTree {
 			FileSystem.rename(itemAbsPath, this.getAbsolutePath(newItemPath));
 		
 		this.iterateChildsOf(itemIndex, function (childIndex:Int) : Void {
-			var chItem:ProjectItem = cast(this.itemsList[childIndex], ProjectItem);
+			var chItem:ProjectTreeItem = cast(this.itemsList[childIndex], ProjectTreeItem);
 			
 			if (!chItem.isLink)
 				chItem.path = chItem.path.replace(Path.addTrailingSlash(item.path), newItemPath);
@@ -264,9 +264,9 @@ class ProjectTree extends FlatTree {
 	}
 	
 	public function removeFileItemAt (itemIndex:Int, deleteFromDisk:Bool) : Void {
-		var item:ProjectItem = cast(this.itemsList[itemIndex], ProjectItem);
+		var item:ProjectTreeItem = cast(this.itemsList[itemIndex], ProjectTreeItem);
 		
-		if (item.type == ProjectItemType.DirectoryItem || item.type == ProjectItemType.FileItem) {
+		if (item.type == ProjectTreeItemType.DirectoryItem || item.type == ProjectTreeItemType.FileItem) {
 			if (deleteFromDisk)
 				FileSystemHelper.delete(this.getAbsolutePath(item.path));
 			
@@ -274,17 +274,17 @@ class ProjectTree extends FlatTree {
 		}
 	}
 	
-	public function getItemTypeAt (itemIndex:Int) : ProjectItemType
-		return cast(this.itemsList[itemIndex], ProjectItem).type;
+	public function getItemTypeAt (itemIndex:Int) : ProjectTreeItemType
+		return cast(this.itemsList[itemIndex], ProjectTreeItem).type;
 	
 	public function getItemPathAt (itemIndex:Int) : String
-		return this.getAbsolutePath(cast(this.itemsList[itemIndex], ProjectItem).path);
+		return this.getAbsolutePath(cast(this.itemsList[itemIndex], ProjectTreeItem).path);
 	
 	public function execFileItemAt (itemIndex:Int) : Void
-		FileSystemHelper.execUrl(this.getAbsolutePath(cast(this.itemsList[itemIndex], ProjectItem).path));
+		FileSystemHelper.execUrl(this.getAbsolutePath(cast(this.itemsList[itemIndex], ProjectTreeItem).path));
 	
 	public function execParentDirAt (itemIndex:Int) : Void
-		FileSystemHelper.execUrl(Path.directory(this.getAbsolutePath(cast(this.itemsList[itemIndex], ProjectItem).path)));
+		FileSystemHelper.execUrl(Path.directory(this.getAbsolutePath(cast(this.itemsList[itemIndex], ProjectTreeItem).path)));
 	
 	public function getChildsCountAt (itemIndex:Int) : Int {
 		var count:Int = 0;
@@ -300,17 +300,17 @@ class ProjectTree extends FlatTree {
 	}
 	
 	public function searchTextAt (itemIndex:Int, searchJsonStr:String) : String {
-		var currItem:ProjectItem = cast(this.itemsList[itemIndex], ProjectItem);
+		var currItem:ProjectTreeItem = cast(this.itemsList[itemIndex], ProjectTreeItem);
 		var searchStruct:Dynamic = Json.parse(searchJsonStr.replace("&#34;", "\""));
 		
 		switch (currItem.type) {
-			case ProjectItemType.FileItem:
+			case ProjectTreeItemType.FileItem:
 				return FileSystemHelper.searchInFile(this.getAbsolutePath(currItem.path), searchStruct);
-			case ProjectItemType.ProjectItem, ProjectItemType.DirectoryItem:
+			case ProjectTreeItemType.ProjectItem, ProjectTreeItemType.DirectoryItem:
 				var searchRes:String = "";
 				this.iterateChildsOf(itemIndex, function (childIndex:Int) : Void {
-					var chItem:ProjectItem = cast(this.itemsList[childIndex], ProjectItem);
-					if (chItem.type == ProjectItemType.FileItem)
+					var chItem:ProjectTreeItem = cast(this.itemsList[childIndex], ProjectTreeItem);
+					if (chItem.type == ProjectTreeItemType.FileItem)
 						searchRes += FileSystemHelper.searchInFile(this.getAbsolutePath(chItem.path), searchStruct);
 				});
 				return searchRes.substring(0, searchRes.length - 1);

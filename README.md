@@ -1,14 +1,14 @@
 haxe-dataTree
 =========================
 
-## FlatTree
+#### FlatTree
 
 Implementation of basic tree data structure with non-recursive methods of iteration.<br/>
 Support to easy transformation [ tree --> list --> tree ].
 
-## ProjectTree
+#### ProjectTree
 
 Implementation of project-tree with links to resources (files, directories, links and etc).
 
-#### Install:
+### Install:
 `haxelib git dataTree https://github.com/r3d9u11/haxe-dataTree.git`

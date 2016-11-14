@@ -10,5 +10,5 @@ Support to easy transformation [ tree --> list --> tree ].
 
 Implementation of project-tree with links to resources (files, directories, links and etc).
 
-### Install:
+## Install:
 `haxelib git dataTree https://github.com/r3d9u11/haxe-dataTree.git`

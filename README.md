@@ -4,7 +4,7 @@ haxe-dataTree
 
 ## FlatTree
 
-Implementation of basic tree data structure with non-recursive methods of iteration.
+Implementation of basic tree data structure with non-recursive methods of iteration.<br/>
 Support to easy transformation [ tree --> list --> tree ].
 
 ## ProjectTree

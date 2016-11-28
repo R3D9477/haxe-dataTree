@@ -16,7 +16,7 @@ class ProjectTemplate {
 	public static function getClassName (projectTitle:String) : String
 		return Path.withoutExtension(Path.withoutDirectory(projectTitle))
 			.replace(" - ", "_")
-			.multiSplit([" ", ".", ",", "	", "-", "(", ")", "+", "=", "~", "#", "%"]).map(function (s:String) return s.toCapitalLetterCase()).join("");
+			.multiSplit([" ", ".", ",", "	", "-", "(", ")", "+", "=", "~", "#", "%"]).map(function (s:String) return s.toTitleCase()).join("");
 	
 	public static function extract (tree:ProjectTree, templatePath:String, destIndex:Int, destName:String) : Bool {
 		var templateConfig:Dynamic = Json.parse(File.getContent(Path.join([templatePath, "init.json"])));
